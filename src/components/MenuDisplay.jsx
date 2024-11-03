@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import _ from 'lodash';
 
 const MenuDisplay = () => {
@@ -7,6 +7,22 @@ const MenuDisplay = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     const loadMenuData = async () => {
@@ -29,7 +45,6 @@ const MenuDisplay = () => {
           throw new Error('No data found in sheet');
         }
 
-        // Process the data
         const [headers, ...rows] = data.values;
         const processedData = rows.map(row => ({
           Category: row[0] || '',
@@ -38,7 +53,6 @@ const MenuDisplay = () => {
           Description: row[3] || ''
         }));
 
-        // Group by category while maintaining sheet order
         const categories = [...new Set(processedData.map(item => item.Category))];
         const formattedMenu = categories.map(category => ({
           category,
@@ -62,6 +76,11 @@ const MenuDisplay = () => {
 
     loadMenuData();
   }, []);
+
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+    setIsDropdownOpen(false);
+  };
 
   const filteredMenu = menuData.map(category => ({
     ...category,
@@ -96,42 +115,49 @@ const MenuDisplay = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      {/* Search Bar */}
-      <div className="mb-6">
+      {/* Search and Category Selection */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <input
           type="text"
           placeholder="Search menu..."
-          className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-      </div>
-
-      {/* Category Buttons */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        <button
-          onClick={() => setSelectedCategory('all')}
-          className={`px-4 py-2 rounded-lg ${
-            selectedCategory === 'all'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-200 text-gray-700'
-          }`}
-        >
-          All
-        </button>
-        {menuData.map((category, index) => (
+        
+        {/* Categories Dropdown */}
+        <div className="relative" ref={dropdownRef}>
           <button
-            key={index}
-            onClick={() => setSelectedCategory(category.category)}
-            className={`px-4 py-2 rounded-lg ${
-              selectedCategory === category.category
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-200 text-gray-700'
-            }`}
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {category.category}
+            {selectedCategory === 'all' ? 'Categories' : selectedCategory}
           </button>
-        ))}
+          
+          {isDropdownOpen && (
+            <div className="absolute right-0 mt-2 py-2 w-48 bg-white rounded-lg shadow-xl z-20 border">
+              <button
+                onClick={() => handleCategorySelect('all')}
+                className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${
+                  selectedCategory === 'all' ? 'bg-blue-50 text-blue-500' : ''
+                }`}
+              >
+                All Categories
+              </button>
+              {menuData.map((category, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleCategorySelect(category.category)}
+                  className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${
+                    selectedCategory === category.category ? 'bg-blue-50 text-blue-500' : ''
+                  }`}
+                >
+                  {category.category}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Menu Items */}
