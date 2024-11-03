@@ -1,13 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import _ from 'lodash';
+import { checkIfOpen, formatDateTime, getBusinessHoursDisplay } from '../utils/businessHoursUtils';
 
 const MenuDisplay = () => {
   const [menuData, setMenuData] = useState([]);
+  const [businessHours, setBusinessHours] = useState([]);
+  const [specialDates, setSpecialDates] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [nextClosedPeriod, setNextClosedPeriod] = useState(null);
   const dropdownRef = useRef(null);
 
   // Close dropdown when clicking outside
@@ -25,38 +30,67 @@ const MenuDisplay = () => {
   }, []);
 
   useEffect(() => {
-    const loadMenuData = async () => {
+    const loadAllData = async () => {
       try {
         const SHEET_ID = '1VX-i0LIFaHrlR-grOZRgWeSNARxBm93ni1o3fyeVOw0';
-        const SHEET_NAME = 'Sheet1';
         const API_KEY = import.meta.env.VITE_GOOGLE_SHEETS_API_KEY;
         
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`;
+        // Fetch menu data
+        const menuResponse = await fetch(
+          `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sheet1?key=${API_KEY}`
+        );
         
-        const response = await fetch(url);
+        // Fetch business hours
+        const hoursResponse = await fetch(
+          `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/BusinessHours?key=${API_KEY}`
+        );
         
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (!data.values || data.values.length === 0) {
-          throw new Error('No data found in sheet');
+        // Fetch special dates
+        const specialResponse = await fetch(
+          `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/SpecialDates?key=${API_KEY}`
+        );
+
+        if (!menuResponse.ok || !hoursResponse.ok || !specialResponse.ok) {
+          throw new Error('Failed to fetch data');
         }
 
-        const [headers, ...rows] = data.values;
-        const processedData = rows.map(row => ({
+        const [menuData, hoursData, specialData] = await Promise.all([
+          menuResponse.json(),
+          hoursResponse.json(),
+          specialResponse.json()
+        ]);
+
+        // Process menu data
+        const [menuHeaders, ...menuRows] = menuData.values;
+        const processedMenu = menuRows.map(row => ({
           Category: row[0] || '',
           Name: row[1] || '',
           Price: row[2] || '0.00',
           Description: row[3] || ''
         }));
 
-        const categories = [...new Set(processedData.map(item => item.Category))];
+        // Process business hours
+        const [hoursHeaders, ...hoursRows] = hoursData.values;
+        const processedHours = hoursRows.map(row => ({
+          day: row[0],
+          openTime: row[1],
+          closeTime: row[2]
+        }));
+
+        // Process special dates
+        const [specialHeaders, ...specialRows] = specialData.values;
+        const processedSpecialDates = specialRows.map(row => ({
+          startDate: row[0],
+          endDate: row[1],
+          status: row[2],
+          reason: row[3]
+        }));
+
+        // Group menu by category
+        const categories = [...new Set(processedMenu.map(item => item.Category))];
         const formattedMenu = categories.map(category => ({
           category,
-          items: processedData
+          items: processedMenu
             .filter(item => item.Category === category)
             .map(item => ({
               name: item.Name,
@@ -66,15 +100,36 @@ const MenuDisplay = () => {
         }));
 
         setMenuData(formattedMenu);
+        setBusinessHours(processedHours);
+        setSpecialDates(processedSpecialDates);
+        
+        // Check if currently open
+        const open = checkIfOpen(processedHours, processedSpecialDates);
+        setIsOpen(open);
+
+        // Find next closed period
+        const nextClosed = processedSpecialDates
+          .find(date => new Date(date.startDate) > new Date());
+        setNextClosedPeriod(nextClosed);
+
         setLoading(false);
       } catch (error) {
-        console.error('Error loading menu:', error);
-        setError('Error loading menu data. Please try again later.');
+        console.error('Error loading data:', error);
+        setError('Error loading data. Please try again later.');
         setLoading(false);
       }
     };
 
-    loadMenuData();
+    loadAllData();
+
+    // Update open/closed status every minute
+    const interval = setInterval(() => {
+      if (businessHours.length && specialDates.length) {
+        setIsOpen(checkIfOpen(businessHours, specialDates));
+      }
+    }, 60000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const handleCategorySelect = (category) => {
@@ -115,6 +170,34 @@ const MenuDisplay = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
+      {/* Header with Open/Closed Status */}
+      <div className="flex flex-col sm:flex-row items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold">Skampa Menu</h1>
+        <div className="flex flex-col items-center sm:items-end mt-2 sm:mt-0">
+          <div className={`inline-flex items-center px-3 py-1 rounded-full ${
+            isOpen ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'
+          }`}>
+            <span className={`w-2 h-2 rounded-full mr-2 ${
+              isOpen ? 'bg-blue-500' : 'bg-red-500'
+            }`}></span>
+            <span className="font-semibold">
+              {isOpen ? 'Open Now' : 'Closed'}
+            </span>
+          </div>
+          <div className="text-sm mt-1">
+            {getBusinessHoursDisplay(businessHours)}
+          </div>
+          {nextClosedPeriod && (
+            <div className="text-sm text-gray-600 mt-1">
+              Closed {formatDateTime(nextClosedPeriod.startDate)} - {formatDateTime(nextClosedPeriod.endDate)}
+              {nextClosedPeriod.reason && (
+                <span className="text-red-600 ml-1">({nextClosedPeriod.reason})</span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Search and Category Selection */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <input
