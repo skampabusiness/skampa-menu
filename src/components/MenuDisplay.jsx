@@ -35,17 +35,15 @@ const MenuDisplay = () => {
         const SHEET_ID = '1VX-i0LIFaHrlR-grOZRgWeSNARxBm93ni1o3fyeVOw0';
         const API_KEY = import.meta.env.VITE_GOOGLE_SHEETS_API_KEY;
         
-        // Fetch menu data
+        // Fetch all data
         const menuResponse = await fetch(
           `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sheet1?key=${API_KEY}`
         );
         
-        // Fetch business hours
         const hoursResponse = await fetch(
           `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/BusinessHours?key=${API_KEY}`
         );
         
-        // Fetch special dates
         const specialResponse = await fetch(
           `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/SpecialDates?key=${API_KEY}`
         );
@@ -80,7 +78,7 @@ const MenuDisplay = () => {
         // Process special dates
         const [specialHeaders, ...specialRows] = specialData.values;
         const processedSpecialDates = specialRows
-          .filter(row => row[0] && row[1]) // Ensure we have both dates
+          .filter(row => row[0] && row[1])
           .map(row => ({
             startDate: row[0],
             endDate: row[1],
@@ -111,7 +109,7 @@ const MenuDisplay = () => {
 
         // Find next closed period
         const now = new Date();
-        now.setHours(0, 0, 0, 0); // Set to start of day for comparison
+        now.setHours(0, 0, 0, 0);
         const nextClosed = processedSpecialDates
           .find(date => {
             const startDate = new Date(date.startDate + 'T00:00:00');
@@ -177,10 +175,14 @@ const MenuDisplay = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      {/* Header with Open/Closed Status */}
+      {/* Header with Status and Contact Info */}
       <div className="flex flex-col sm:flex-row items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold">Skampa Menu</h1>
+        <div className="flex flex-col items-center sm:items-start">
+          <h1 className="text-3xl font-bold">Skampa Menu</h1>
+          <p className="text-sm text-gray-600 mt-1">Famous for the Best Roast Beef in Cambridge</p>
+        </div>
         <div className="flex flex-col items-center sm:items-end mt-2 sm:mt-0">
+          {/* Open/Closed Status */}
           <div className={`inline-flex items-center px-3 py-1 rounded-full ${
             isOpen ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'
           }`}>
@@ -191,9 +193,13 @@ const MenuDisplay = () => {
               {isOpen ? 'Open Now' : 'Closed'}
             </span>
           </div>
+          
+          {/* Today's Hours */}
           <div className="text-sm mt-1">
             {getBusinessHoursDisplay(businessHours)}
           </div>
+
+          {/* Next Closure Period */}
           {nextClosedPeriod && (
             <div className="text-sm text-gray-600 mt-1">
               Closed {formatDateTime(nextClosedPeriod.startDate)} - {formatDateTime(nextClosedPeriod.endDate)}
@@ -202,6 +208,19 @@ const MenuDisplay = () => {
               )}
             </div>
           )}
+
+          {/* Contact Info */}
+          <div className="text-sm text-gray-600 mt-2">
+            <a href="tel:+16173540009" className="hover:text-blue-600">617-354-0009</a>
+          </div>
+          <div className="text-sm text-gray-600">
+            <a href="https://maps.google.com/?q=424+Cambridge+St,+Cambridge+MA+02141" 
+               target="_blank" 
+               rel="noopener noreferrer"
+               className="hover:text-blue-600">
+              424 Cambridge St, Cambridge
+            </a>
+          </div>
         </div>
       </div>
 
@@ -251,24 +270,36 @@ const MenuDisplay = () => {
       </div>
 
       {/* Menu Items */}
-      {filteredMenu.map((category, index) => (
-        <div key={index} className="mb-8">
-          <h2 className="text-2xl font-bold mb-4">{category.category}</h2>
-          <div className="grid gap-4">
-            {category.items.map((item, itemIndex) => (
-              <div key={itemIndex} className="border p-4 rounded-lg">
-                <div className="flex justify-between">
-                  <h3 className="font-semibold">{item.name}</h3>
-                  <span className="text-gray-700">${item.price}</span>
-                </div>
-                {item.description && (
-                  <p className="text-gray-600 mt-2">{item.description}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
+      <main role="main" aria-label="Restaurant Menu">
+        {filteredMenu.map((category, index) => (
+          <section key={index} className="mb-8">
+            <h2 
+              className="text-2xl font-bold mb-4" 
+              id={`category-${category.category.toLowerCase().replace(/\s+/g, '-')}`}
+            >
+              {category.category}
+            </h2>
+            <div className="grid gap-4">
+              {category.items.map((item, itemIndex) => (
+                <article 
+                  key={itemIndex} 
+                  className="border p-4 rounded-lg"
+                  itemScope 
+                  itemType="https://schema.org/MenuItem"
+                >
+                  <div className="flex justify-between">
+                    <h3 className="font-semibold" itemProp="name">{item.name}</h3>
+                    <span className="text-gray-700" itemProp="price">${item.price}</span>
+                  </div>
+                  {item.description && (
+                    <p className="text-gray-600 mt-2" itemProp="description">{item.description}</p>
+                  )}
+                </article>
+              ))}
+            </div>
+          </section>
+        ))}
+      </main>
     </div>
   );
 };

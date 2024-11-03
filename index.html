@@ -3,12 +3,93 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" sizes="32x32" href="./skampa.png">
-    <!-- Clear cache meta tag -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Skampa Menu</title>
+    
+    <!-- Primary Meta Tags -->
+    <title>Skampa Restaurant - Best Roast Beef & Mediterranean Cuisine in Cambridge, MA</title>
+    <meta name="description" content="Famous for the best Roast Beef and Kebab in Cambridge. Enjoy authentic Mediterranean cuisine, catering services, and delivery. Visit us at 424 Cambridge St or call 617-354-0009." />
+    <meta name="keywords" content="Skampa Restaurant, best roast beef Cambridge, Mediterranean food Cambridge MA, Cambridge restaurant, catering Cambridge MA, food delivery Cambridge" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Skampa Restaurant - Best Roast Beef & Mediterranean Cuisine" />
+    <meta property="og:description" content="Famous for the best Roast Beef in Cambridge. Mediterranean cuisine, catering & delivery available. Order now: 617-354-0009" />
+    <meta property="og:url" content="https://skamparestaurant.com" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Skampa Restaurant - Cambridge, MA" />
+    <meta name="twitter:description" content="Best Roast Beef & Mediterranean cuisine in Cambridge. Catering & delivery available. Order: 617-354-0009" />
+    
+    <!-- Additional SEO tags -->
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="English" />
+    <meta name="author" content="Skampa Restaurant" />
+    <meta name="geo.region" content="US-MA" />
+    <meta name="geo.placename" content="Cambridge" />
+    <meta name="geo.position" content="42.3723;-71.0952" />
+    <meta name="ICBM" content="42.3723, -71.0952" />
+    <link rel="canonical" href="https://skamparestaurant.com" />
+    
+    <!-- Structured Data for Restaurant -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Restaurant",
+      "name": "Skampa Restaurant",
+      "image": "",
+      "description": "Famous for the best Roast Beef in Cambridge. Authentic Mediterranean cuisine with catering and delivery options available.",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "424 Cambridge St",
+        "addressLocality": "Cambridge",
+        "addressRegion": "MA",
+        "postalCode": "02141",
+        "addressCountry": "US"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 42.3723,
+        "longitude": -71.0952
+      },
+      "url": "https://skamparestaurant.com",
+      "telephone": "+16173540009",
+      "servesCuisine": ["Mediterranean", "Roast Beef", "American"],
+      "priceRange": "$$",
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "Delivery",
+          "value": "Available"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Catering",
+          "value": "Available"
+        }
+      ],
+      "openingHoursSpecification": [
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          "opens": "11:00",
+          "closes": "22:00"
+        },
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Saturday"],
+          "opens": "11:00",
+          "closes": "23:00"
+        },
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": "Sunday",
+          "opens": "11:00",
+          "closes": "21:00"
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
