@@ -3,6 +3,7 @@ import _ from 'lodash';
 import { checkIfOpen, formatDateTime, getBusinessHoursDisplay } from '../utils/businessHoursUtils';
 
 const MenuDisplay = () => {
+  // ... all state definitions remain the same ...
   const [menuData, setMenuData] = useState([]);
   const [businessHours, setBusinessHours] = useState([]);
   const [specialDates, setSpecialDates] = useState([]);
@@ -15,7 +16,7 @@ const MenuDisplay = () => {
   const [nextClosedPeriod, setNextClosedPeriod] = useState(null);
   const dropdownRef = useRef(null);
 
-  // Close dropdown when clicking outside
+  // All useEffect hooks remain the same...
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -35,7 +36,7 @@ const MenuDisplay = () => {
         const SHEET_ID = '1VX-i0LIFaHrlR-grOZRgWeSNARxBm93ni1o3fyeVOw0';
         const API_KEY = import.meta.env.VITE_GOOGLE_SHEETS_API_KEY;
         
-        // Fetch all data
+        // ... rest of the data loading code remains exactly the same ...
         const menuResponse = await fetch(
           `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sheet1?key=${API_KEY}`
         );
@@ -103,11 +104,9 @@ const MenuDisplay = () => {
         setBusinessHours(processedHours);
         setSpecialDates(processedSpecialDates);
         
-        // Check if currently open
         const open = checkIfOpen(processedHours, processedSpecialDates);
         setIsOpen(open);
 
-        // Find next closed period
         const now = new Date();
         now.setHours(0, 0, 0, 0);
         const nextClosed = processedSpecialDates
@@ -127,7 +126,6 @@ const MenuDisplay = () => {
 
     loadAllData();
 
-    // Update open/closed status every minute
     const interval = setInterval(() => {
       if (businessHours.length && specialDates.length) {
         setIsOpen(checkIfOpen(businessHours, specialDates));
@@ -157,7 +155,7 @@ const MenuDisplay = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="min-h-[600px] flex justify-center items-center">
         <div className="text-xl">Loading menu...</div>
       </div>
     );
@@ -165,7 +163,7 @@ const MenuDisplay = () => {
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto p-4">
+      <div className="min-h-[600px] flex justify-center items-center">
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           {error}
         </div>
@@ -176,16 +174,16 @@ const MenuDisplay = () => {
   return (
     <div className="max-w-4xl mx-auto p-4">
       {/* Header with Status and Contact Info */}
-      <header className="mb-8">
+      <header className="mb-8 min-h-[150px]" role="banner">
         <div className="flex flex-col sm:flex-row items-center justify-between">
           <div className="flex flex-col items-center sm:items-start">
             <h1 className="text-3xl font-bold">Skampa Restaurant</h1>
-            <h2 className="text-xl">Menu</h2>
-            <p className="text-sm text-gray-600 mt-1">Famous for the Best Roast Beef in Cambridge</p>
+            <h2 className="text-xl mt-1">Mediterranean Cuisine & Best Roast Beef</h2>
+            <p className="text-sm text-gray-600 mt-1">Cambridge's Premier Mediterranean Restaurant</p>
           </div>
-          <div className="flex flex-col items-center sm:items-end mt-2 sm:mt-0">
-            {/* Open/Closed Status */}
-            <div className={`inline-flex items-center px-3 py-1 rounded-full ${
+          <div className="flex flex-col items-center sm:items-end mt-2 sm:mt-0 min-w-[200px]">
+            {/* Status indicator with reserved space */}
+            <div className={`inline-flex items-center px-3 py-1 rounded-full min-w-[120px] justify-center ${
               isOpen ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'
             }`}>
               <span className={`w-2 h-2 rounded-full mr-2 ${
@@ -196,14 +194,12 @@ const MenuDisplay = () => {
               </span>
             </div>
             
-            {/* Today's Hours */}
-            <div className="text-sm mt-1">
+            <div className="text-sm mt-1 min-h-[20px]">
               {getBusinessHoursDisplay(businessHours)}
             </div>
 
-            {/* Next Closure Period */}
             {nextClosedPeriod && (
-              <div className="text-sm text-gray-600 mt-1">
+              <div className="text-sm text-gray-600 mt-1 min-h-[20px]">
                 Closed {formatDateTime(nextClosedPeriod.startDate)} - {formatDateTime(nextClosedPeriod.endDate)}
                 {nextClosedPeriod.reason && (
                   <span className="text-red-600 ml-1">({nextClosedPeriod.reason})</span>
@@ -211,33 +207,34 @@ const MenuDisplay = () => {
               </div>
             )}
 
-            {/* Contact Info */}
-            <address className="text-sm text-gray-600 mt-2 not-italic">
-              <a href="tel:+16173540009" className="hover:text-blue-600">617-354-0009</a><br />
+            <address className="text-sm text-gray-600 mt-2 not-italic text-center sm:text-right">
+              <a href="tel:+16173540009" className="hover:text-blue-600 block">617-354-0009</a>
               <a href="https://maps.google.com/?q=424+Cambridge+St,+Cambridge+MA+02141" 
                  target="_blank" 
                  rel="noopener noreferrer"
-                 className="hover:text-blue-600">
-                424 Cambridge St, Cambridge
+                 className="hover:text-blue-600 block">
+                424 Cambridge St, Cambridge, MA
               </a>
             </address>
           </div>
         </div>
       </header>
 
-      {/* Search and Category Selection */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      {/* Search and Categories with reserved space */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6 min-h-[48px]">
         <input
           type="text"
-          placeholder="Search menu..."
+          placeholder="Search our Mediterranean menu & famous roast beef..."
+          aria-label="Search menu items"
           className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
         
-        {/* Categories Dropdown */}
         <div className="relative" ref={dropdownRef}>
           <button
+            aria-haspopup="true"
+            aria-expanded={isDropdownOpen}
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
@@ -245,8 +242,13 @@ const MenuDisplay = () => {
           </button>
           
           {isDropdownOpen && (
-            <div className="absolute right-0 mt-2 py-2 w-48 bg-white rounded-lg shadow-xl z-20 border">
+            <div 
+              className="absolute right-0 mt-2 py-2 w-48 bg-white rounded-lg shadow-xl z-20 border"
+              role="menu"
+              aria-orientation="vertical"
+            >
               <button
+                role="menuitem"
                 onClick={() => handleCategorySelect('all')}
                 className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${
                   selectedCategory === 'all' ? 'bg-blue-50 text-blue-500' : ''
@@ -257,6 +259,7 @@ const MenuDisplay = () => {
               {menuData.map((category, index) => (
                 <button
                   key={index}
+                  role="menuitem"
                   onClick={() => handleCategorySelect(category.category)}
                   className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${
                     selectedCategory === category.category ? 'bg-blue-50 text-blue-500' : ''
@@ -270,10 +273,14 @@ const MenuDisplay = () => {
         </div>
       </div>
 
-      {/* Menu Items */}
-      <main role="main" aria-label="Restaurant Menu">
+      {/* Menu Items with reserved space */}
+      <main role="main" aria-label="Restaurant Menu" className="min-h-[400px]">
         {filteredMenu.map((category, index) => (
-          <section key={index} className="mb-8">
+          <section 
+            key={index} 
+            className="mb-8"
+            aria-labelledby={`category-${category.category.toLowerCase().replace(/\s+/g, '-')}`}
+          >
             <h2 
               className="text-2xl font-bold mb-4" 
               id={`category-${category.category.toLowerCase().replace(/\s+/g, '-')}`}
