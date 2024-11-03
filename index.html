@@ -5,9 +5,13 @@
     <link rel="icon" type="image/png" sizes="32x32" href="./skampa.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
+    <!-- DNS Prefetch and Preconnect -->
+    <link rel="dns-prefetch" href="https://sheets.googleapis.com">
+    <link rel="preconnect" href="https://sheets.googleapis.com" crossorigin>
+    
     <!-- Primary Meta Tags -->
-    <title>Skampa Restaurant - Best Roast Beef & Mediterranean Food in Cambridge, MA</title>
-    <meta name="description" content="Famous for the best Roast Beef in Cambridge. Enjoy authentic Mediterranean cuisine, catering services, and delivery. Visit us at 424 Cambridge St or call 617-354-0009." />
+    <title>Skampa Restaurant - Best Roast Beef & Mediterranean Food Around</title>
+    <meta name="description" content="Famous for the best Roast Beef in Cambridge. Home of authentic Mediterranean cuisine, catering services, and delivery. Visit us at 424 Cambridge St or call 617-354-0009." />
     <meta name="keywords" content="Skampa Restaurant Cambridge, best roast beef Cambridge, Mediterranean food Cambridge, Cambridge restaurant delivery, catering Cambridge MA, Mediterranean cuisine Massachusetts, Cambridge St restaurants" />
     
     <!-- Open Graph / Facebook -->
@@ -30,31 +34,69 @@
     <meta name="geo.position" content="42.3723;-71.0952" />
     <meta name="ICBM" content="42.3723, -71.0952" />
     <link rel="canonical" href="https://skamparestaurant.com" />
+
+    <!-- Cache Control -->
+    <meta http-equiv="Cache-Control" content="public, max-age=31536000" />
     
     <!-- Inline critical CSS -->
     <style>
+      /* Critical rendering path CSS */
       body {
         margin: 0;
-        font-family: system-ui, -apple-system, sans-serif;
+        padding: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background-color: rgb(249, 250, 251);
       }
+      
       #root {
         min-height: 100vh;
       }
+
       .loading {
         display: flex;
         justify-content: center;
         align-items: center;
         min-height: 100vh;
+        color: #1f2937;
+        font-size: 1.125rem;
+      }
+
+      .initial-header {
+        text-align: center;
+        padding: 1rem;
+        background-color: white;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      }
+
+      .initial-title {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0;
+        padding: 1rem 0;
+      }
+
+      .initial-subtitle {
+        font-size: 1.125rem;
+        color: #4b5563;
+        margin: 0;
+      }
+
+      /* Prevent content flash */
+      #initial-content {
+        display: none;
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-mi3EXcFG.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/vendor-YrKBaaSI.js">
-    <link rel="modulepreload" crossorigin href="/assets/utils-CHx6bvGq.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-BIq7v2Cm.css">
+    <script type="module" crossorigin src="/assets/index-CNDTg0CD.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-react/vendor-react.DPMQFbgY.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-utils/vendor-utils.DLmNWJ6H.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-CXI3MOvv.css">
   </head>
   <body>
     <!-- Initial SEO content -->
-    <div id="initial-content" style="display: none">
+    <div id="initial-content">
       <h1>Skampa Restaurant Cambridge - Best Roast Beef & Mediterranean Food</h1>
       <h2>Cambridge's Premier Mediterranean Restaurant & Famous Roast Beef</h2>
       <p>Welcome to Skampa Restaurant, home of Cambridge's best roast beef and authentic Mediterranean cuisine.</p>
@@ -72,11 +114,15 @@
       </ul>
     </div>
 
+    <!-- Root element with initial loading state -->
     <div id="root">
-      <div class="loading">Loading...</div>
+      <div class="initial-header">
+        <h1 class="initial-title">Skampa Restaurant</h1>
+        <p class="initial-subtitle">Loading our menu...</p>
+      </div>
     </div>
     
-    <!-- Load scripts -->
+    <!-- Deferred script loading -->
 
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -84,8 +130,8 @@
       "@context": "https://schema.org",
       "@type": "Restaurant",
       "name": "Skampa Restaurant",
+      "image": "",
       "description": "Famous for the best Roast Beef in Cambridge. Authentic Mediterranean cuisine with catering and delivery options available.",
-      "servesCuisine": ["Mediterranean", "Roast Beef", "American"],
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "424 Cambridge St",
@@ -101,6 +147,7 @@
       },
       "url": "https://skamparestaurant.com",
       "telephone": "+16173540009",
+      "servesCuisine": ["Mediterranean", "Roast Beef", "American"],
       "priceRange": "$$",
       "menu": "https://skamparestaurant.com",
       "acceptsReservations": "true",
@@ -108,7 +155,26 @@
         "@type": "Offer",
         "availabilityStarts": "11:00",
         "availabilityEnds": "22:00"
-      }
+      },
+      "potentialAction": {
+        "@type": "OrderAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://skamparestaurant.com",
+          "inLanguage": "en-US",
+          "actionPlatform": [
+            "http://schema.org/DesktopWebPlatform",
+            "http://schema.org/MobileWebPlatform"
+          ]
+        },
+        "deliveryMethod": [
+          "http://purl.org/goodrelations/v1#DeliveryModePickUp",
+          "http://purl.org/goodrelations/v1#DeliveryModeOwnFleet"
+        ]
+      },
+      "sameAs": [
+        "https://skamparestaurant.com"
+      ]
     }
     </script>
   </body>
