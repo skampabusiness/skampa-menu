@@ -5,6 +5,8 @@ const MenuDisplay = () => {
   const [menuData, setMenuData] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const loadMenuData = async () => {
@@ -13,18 +15,15 @@ const MenuDisplay = () => {
         const SHEET_NAME = 'Sheet1';
         const API_KEY = import.meta.env.VITE_GOOGLE_SHEETS_API_KEY;
         
-        console.log('Starting to fetch menu data...');
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`;
         
         const response = await fetch(url);
-        console.log('Sheet API Response status:', response.status);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
-        console.log('Successfully received sheet data');
         
         if (!data.values || data.values.length === 0) {
           throw new Error('No data found in sheet');
@@ -39,20 +38,18 @@ const MenuDisplay = () => {
           Description: row[3] || ''
         }));
 
-        // Group by category
-        const groupedData = _.groupBy(processedData, 'Category');
-        
-        // Transform into menu structure
-        const formattedMenu = Object.entries(groupedData)
-          .map(([category, items]) => ({
-            category,
-            items: items.map(item => ({
+        // Group by category while maintaining sheet order
+        const categories = [...new Set(processedData.map(item => item.Category))];
+        const formattedMenu = categories.map(category => ({
+          category,
+          items: processedData
+            .filter(item => item.Category === category)
+            .map(item => ({
               name: item.Name,
               price: parseFloat(item.Price || 0).toFixed(2),
               description: item.Description
             }))
-          }))
-          .sort((a, b) => a.category.localeCompare(b.category));
+        }));
 
         setMenuData(formattedMenu);
         setLoading(false);
@@ -65,6 +62,19 @@ const MenuDisplay = () => {
 
     loadMenuData();
   }, []);
+
+  const filteredMenu = menuData.map(category => ({
+    ...category,
+    items: category.items.filter(item =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  })).filter(category => 
+    selectedCategory === 'all' || 
+    category.category === selectedCategory
+  ).filter(category => 
+    searchQuery === '' || category.items.length > 0
+  );
 
   if (loading) {
     return (
@@ -86,7 +96,46 @@ const MenuDisplay = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      {menuData.map((category, index) => (
+      {/* Search Bar */}
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search menu..."
+          className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
+      {/* Category Buttons */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        <button
+          onClick={() => setSelectedCategory('all')}
+          className={`px-4 py-2 rounded-lg ${
+            selectedCategory === 'all'
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-200 text-gray-700'
+          }`}
+        >
+          All
+        </button>
+        {menuData.map((category, index) => (
+          <button
+            key={index}
+            onClick={() => setSelectedCategory(category.category)}
+            className={`px-4 py-2 rounded-lg ${
+              selectedCategory === category.category
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-200 text-gray-700'
+            }`}
+          >
+            {category.category}
+          </button>
+        ))}
+      </div>
+
+      {/* Menu Items */}
+      {filteredMenu.map((category, index) => (
         <div key={index} className="mb-8">
           <h2 className="text-2xl font-bold mb-4">{category.category}</h2>
           <div className="grid gap-4">
