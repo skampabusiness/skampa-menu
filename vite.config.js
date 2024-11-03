@@ -4,30 +4,49 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: '/',
-  define: {
-    'process.env': {}
-  },
   build: {
+    // Enable minification
+    minify: 'esbuild',
+    // Optimize chunk size
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom'],
-          utils: ['lodash']
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-utils': ['lodash']
+        },
+        // Minimize chunk size
+        chunkFileNames: (chunkInfo) => {
+          const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/') : [];
+          const fileName = facadeModuleId[facadeModuleId.length - 2] || '[name]';
+          return `assets/${fileName}/[name].[hash].js`;
         }
       }
     },
-    cssCodeSplit: true,
-    chunkSizeWarningLimit: 500,
-    sourcemap: true,
-    assetsInlineLimit: 4096,
-    emptyOutDir: true,
+    // Improve build performance
     target: 'esnext',
-    // Optimize chunks
-    modulePreload: {
-      polyfill: true
+    // Reduce initial bundle size
+    cssCodeSplit: true,
+    // Optimize assets
+    assetsInlineLimit: 4096,
+    // Enable compression
+    reportCompressedSize: true,
+    // Chunk size warnings
+    chunkSizeWarningLimit: 500
+  },
+  // Optimize dependencies
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'lodash'],
+    exclude: [],
+    esbuildOptions: {
+      target: 'esnext'
     }
   },
-  optimizeDeps: {
-    include: ['react', 'react-dom', 'lodash']
+  // Enable caching
+  server: {
+    force: true,
+    hmr: true,
+    headers: {
+      'Cache-Control': 'public, max-age=31536000'
+    }
   }
 });

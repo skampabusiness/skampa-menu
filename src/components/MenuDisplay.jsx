@@ -1,9 +1,44 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import _ from 'lodash';
 import { checkIfOpen, formatDateTime, getBusinessHoursDisplay } from '../utils/businessHoursUtils';
 
+// Extracted components for better performance
+const MenuItem = React.memo(({ item }) => (
+  <article 
+    className="border p-4 rounded-lg"
+    itemScope 
+    itemType="https://schema.org/MenuItem"
+  >
+    <div className="flex justify-between">
+      <h3 className="font-semibold" itemProp="name">{item.name}</h3>
+      <span className="text-gray-700" itemProp="price">${item.price}</span>
+    </div>
+    {item.description && (
+      <p className="text-gray-600 mt-2" itemProp="description">{item.description}</p>
+    )}
+  </article>
+));
+
+const CategorySection = React.memo(({ category, items }) => (
+  <section 
+    className="mb-8"
+    aria-labelledby={`category-${category.toLowerCase().replace(/\s+/g, '-')}`}
+  >
+    <h2 
+      className="text-2xl font-bold mb-4" 
+      id={`category-${category.toLowerCase().replace(/\s+/g, '-')}`}
+    >
+      {category}
+    </h2>
+    <div className="grid gap-4">
+      {items.map((item, index) => (
+        <MenuItem key={`${category}-${index}`} item={item} />
+      ))}
+    </div>
+  </section>
+));
+
 const MenuDisplay = () => {
-  // ... all state definitions remain the same ...
   const [menuData, setMenuData] = useState([]);
   const [businessHours, setBusinessHours] = useState([]);
   const [specialDates, setSpecialDates] = useState([]);
@@ -16,18 +51,27 @@ const MenuDisplay = () => {
   const [nextClosedPeriod, setNextClosedPeriod] = useState(null);
   const dropdownRef = useRef(null);
 
-  // All useEffect hooks remain the same...
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
+  // Optimize outside click handler
+  const handleClickOutside = useCallback((event) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      setIsDropdownOpen(false);
+    }
+  }, []);
 
+  useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
+  }, [handleClickOutside]);
+
+  // Optimize data fetching
+  const fetchData = useCallback(async (sheetId, sheetName, apiKey) => {
+    const response = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}?key=${apiKey}`
+    );
+    if (!response.ok) throw new Error(`Failed to fetch ${sheetName}`);
+    return response.json();
   }, []);
 
   useEffect(() => {
@@ -36,27 +80,11 @@ const MenuDisplay = () => {
         const SHEET_ID = '1VX-i0LIFaHrlR-grOZRgWeSNARxBm93ni1o3fyeVOw0';
         const API_KEY = import.meta.env.VITE_GOOGLE_SHEETS_API_KEY;
         
-        // ... rest of the data loading code remains exactly the same ...
-        const menuResponse = await fetch(
-          `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sheet1?key=${API_KEY}`
-        );
-        
-        const hoursResponse = await fetch(
-          `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/BusinessHours?key=${API_KEY}`
-        );
-        
-        const specialResponse = await fetch(
-          `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/SpecialDates?key=${API_KEY}`
-        );
-
-        if (!menuResponse.ok || !hoursResponse.ok || !specialResponse.ok) {
-          throw new Error('Failed to fetch data');
-        }
-
+        // Parallel data fetching
         const [menuData, hoursData, specialData] = await Promise.all([
-          menuResponse.json(),
-          hoursResponse.json(),
-          specialResponse.json()
+          fetchData(SHEET_ID, 'Sheet1', API_KEY),
+          fetchData(SHEET_ID, 'BusinessHours', API_KEY),
+          fetchData(SHEET_ID, 'SpecialDates', API_KEY)
         ]);
 
         // Process menu data
@@ -104,9 +132,11 @@ const MenuDisplay = () => {
         setBusinessHours(processedHours);
         setSpecialDates(processedSpecialDates);
         
+        // Check if currently open
         const open = checkIfOpen(processedHours, processedSpecialDates);
         setIsOpen(open);
 
+        // Find next closed period
         const now = new Date();
         now.setHours(0, 0, 0, 0);
         const nextClosed = processedSpecialDates
@@ -133,25 +163,31 @@ const MenuDisplay = () => {
     }, 60000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchData]);
 
-  const handleCategorySelect = (category) => {
+  const handleCategorySelect = useCallback((category) => {
     setSelectedCategory(category);
     setIsDropdownOpen(false);
-  };
+  }, []);
 
-  const filteredMenu = menuData.map(category => ({
-    ...category,
-    items: category.items.filter(item =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  })).filter(category => 
-    selectedCategory === 'all' || 
-    category.category === selectedCategory
-  ).filter(category => 
-    searchQuery === '' || category.items.length > 0
-  );
+  // Memoize filtered menu
+  const filteredMenu = useMemo(() => {
+    return menuData
+      .map(category => ({
+        ...category,
+        items: category.items.filter(item =>
+          item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.description?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      }))
+      .filter(category => 
+        selectedCategory === 'all' || 
+        category.category === selectedCategory
+      )
+      .filter(category => 
+        searchQuery === '' || category.items.length > 0
+      );
+  }, [menuData, searchQuery, selectedCategory]);
 
   if (loading) {
     return (
@@ -276,40 +312,15 @@ const MenuDisplay = () => {
       {/* Menu Items with reserved space */}
       <main role="main" aria-label="Restaurant Menu" className="min-h-[400px]">
         {filteredMenu.map((category, index) => (
-          <section 
-            key={index} 
-            className="mb-8"
-            aria-labelledby={`category-${category.category.toLowerCase().replace(/\s+/g, '-')}`}
-          >
-            <h2 
-              className="text-2xl font-bold mb-4" 
-              id={`category-${category.category.toLowerCase().replace(/\s+/g, '-')}`}
-            >
-              {category.category}
-            </h2>
-            <div className="grid gap-4">
-              {category.items.map((item, itemIndex) => (
-                <article 
-                  key={itemIndex} 
-                  className="border p-4 rounded-lg"
-                  itemScope 
-                  itemType="https://schema.org/MenuItem"
-                >
-                  <div className="flex justify-between">
-                    <h3 className="font-semibold" itemProp="name">{item.name}</h3>
-                    <span className="text-gray-700" itemProp="price">${item.price}</span>
-                  </div>
-                  {item.description && (
-                    <p className="text-gray-600 mt-2" itemProp="description">{item.description}</p>
-                  )}
-                </article>
-              ))}
-            </div>
-          </section>
+          <CategorySection 
+            key={`${category.category}-${index}`}
+            category={category.category}
+            items={category.items}
+          />
         ))}
       </main>
     </div>
   );
 };
 
-export default MenuDisplay;
+export default React.memo(MenuDisplay);
