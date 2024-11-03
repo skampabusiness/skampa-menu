@@ -7,7 +7,7 @@
     
     <!-- Primary Meta Tags -->
     <title>Skampa Restaurant - Best Roast Beef & Mediterranean Cuisine in Cambridge, MA</title>
-    <meta name="description" content="Famous for the best Roast Beef and Kebab in Cambridge. Enjoy authentic Mediterranean cuisine, catering services, and delivery. Visit us at 424 Cambridge St or call 617-354-0009." />
+    <meta name="description" content="Famous for the best Roast Beef in Cambridge. Enjoy authentic Mediterranean cuisine, catering services, and delivery. Visit us at 424 Cambridge St or call 617-354-0009." />
     <meta name="keywords" content="Skampa Restaurant, best roast beef Cambridge, Mediterranean food Cambridge MA, Cambridge restaurant, catering Cambridge MA, food delivery Cambridge" />
     
     <!-- Open Graph / Facebook -->
@@ -30,7 +30,37 @@
     <meta name="geo.position" content="42.3723;-71.0952" />
     <meta name="ICBM" content="42.3723, -71.0952" />
     <link rel="canonical" href="https://skamparestaurant.com" />
-    
+
+    <!-- Initial page structure for SEO -->
+    <style>
+      #initial-content {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Initial content for SEO (hidden but readable by search engines) -->
+    <div id="initial-content">
+      <h1>Skampa Restaurant - Best Roast Beef & Mediterranean Cuisine in Cambridge</h1>
+      <h2>Famous Mediterranean Restaurant in Cambridge, MA</h2>
+      <p>Welcome to Skampa Restaurant, home of Cambridge's best roast beef and authentic Mediterranean cuisine.</p>
+      <address>
+        424 Cambridge St, Cambridge, MA 02141<br>
+        Phone: (617) 354-0009
+      </address>
+      <h2>Our Services</h2>
+      <ul>
+        <li>Dine-in Restaurant</li>
+        <li>Takeout Available</li>
+        <li>Catering Services</li>
+        <li>Delivery Options</li>
+      </ul>
+    </div>
+
+    <!-- React root -->
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+
     <!-- Structured Data for Restaurant -->
     <script type="application/ld+json">
     {
@@ -67,32 +97,8 @@
           "name": "Catering",
           "value": "Available"
         }
-      ],
-      "openingHoursSpecification": [
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-          "opens": "11:00",
-          "closes": "22:00"
-        },
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": ["Saturday"],
-          "opens": "11:00",
-          "closes": "23:00"
-        },
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": "Sunday",
-          "opens": "11:00",
-          "closes": "21:00"
-        }
       ]
     }
     </script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
