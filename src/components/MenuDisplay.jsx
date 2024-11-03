@@ -79,12 +79,14 @@ const MenuDisplay = () => {
 
         // Process special dates
         const [specialHeaders, ...specialRows] = specialData.values;
-        const processedSpecialDates = specialRows.map(row => ({
-          startDate: row[0],
-          endDate: row[1],
-          status: row[2],
-          reason: row[3]
-        }));
+        const processedSpecialDates = specialRows
+          .filter(row => row[0] && row[1]) // Ensure we have both dates
+          .map(row => ({
+            startDate: row[0],
+            endDate: row[1],
+            status: row[2],
+            reason: row[3]
+          }));
 
         // Group menu by category
         const categories = [...new Set(processedMenu.map(item => item.Category))];
@@ -108,8 +110,13 @@ const MenuDisplay = () => {
         setIsOpen(open);
 
         // Find next closed period
+        const now = new Date();
+        now.setHours(0, 0, 0, 0); // Set to start of day for comparison
         const nextClosed = processedSpecialDates
-          .find(date => new Date(date.startDate) > new Date());
+          .find(date => {
+            const startDate = new Date(date.startDate + 'T00:00:00');
+            return startDate >= now;
+          });
         setNextClosedPeriod(nextClosed);
 
         setLoading(false);

@@ -6,9 +6,10 @@ export const checkIfOpen = (businessHours, specialDates) => {
   
   // First check special dates
   const isSpecialDate = specialDates.some(({ startDate, endDate }) => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    return now >= start && now <= end;
+    const start = new Date(startDate + 'T00:00:00');
+    const end = new Date(endDate + 'T00:00:00');
+    const today = new Date(now.toISOString().split('T')[0] + 'T00:00:00');
+    return today >= start && today <= end;
   });
 
   if (isSpecialDate) {
@@ -40,7 +41,9 @@ export const checkIfOpen = (businessHours, specialDates) => {
 };
 
 export const formatDateTime = (date) => {
-  return new Date(date).toLocaleDateString('en-US', {
+  // Create a new date and ensure it's treated as UTC
+  const d = new Date(date + 'T00:00:00');
+  return d.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric'
