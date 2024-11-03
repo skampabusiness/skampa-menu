@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://skamparestaurant.com/sitemap.xml
