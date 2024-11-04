@@ -218,9 +218,9 @@ const MenuDisplay = () => {
       <header className="mb-8 min-h-[150px]" role="banner">
         <div className="flex flex-col sm:flex-row items-center justify-between">
           <div className="flex flex-col items-center sm:items-start">
-            <h1 className="text-3xl font-bold">Skampa Restaurant - Best Roast Beef & Mediterranean Cuisine</h1>
+            <h1 className="text-3xl font-bold">Skampa Restaurant</h1>
             <p className="text-sm text-gray-600 mt-1">
-              Famous for the best Roast Beef and Mediterranean cuisine around
+              Best Roast Beef and Mediterranean cuisine around
             </p>
           </div>
           <div className="flex flex-col items-center sm:items-end mt-2 sm:mt-0 min-w-[200px]">
