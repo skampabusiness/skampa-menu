@@ -51,27 +51,18 @@ const MenuDisplay = () => {
   const [nextClosedPeriod, setNextClosedPeriod] = useState(null);
   const dropdownRef = useRef(null);
 
-  // Optimize outside click handler
-  const handleClickOutside = useCallback((event) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-      setIsDropdownOpen(false);
-    }
-  }, []);
-
+  // Close dropdown when clicking outside
   useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [handleClickOutside]);
-
-  // Optimize data fetching
-  const fetchData = useCallback(async (sheetId, sheetName, apiKey) => {
-    const response = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}?key=${apiKey}`
-    );
-    if (!response.ok) throw new Error(`Failed to fetch ${sheetName}`);
-    return response.json();
   }, []);
 
   useEffect(() => {
@@ -80,11 +71,27 @@ const MenuDisplay = () => {
         const SHEET_ID = '1VX-i0LIFaHrlR-grOZRgWeSNARxBm93ni1o3fyeVOw0';
         const API_KEY = import.meta.env.VITE_GOOGLE_SHEETS_API_KEY;
         
-        // Parallel data fetching
+        // Fetch all data
+        const menuResponse = await fetch(
+          `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sheet1?key=${API_KEY}`
+        );
+        
+        const hoursResponse = await fetch(
+          `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/BusinessHours?key=${API_KEY}`
+        );
+        
+        const specialResponse = await fetch(
+          `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/SpecialDates?key=${API_KEY}`
+        );
+
+        if (!menuResponse.ok || !hoursResponse.ok || !specialResponse.ok) {
+          throw new Error('Failed to fetch data');
+        }
+
         const [menuData, hoursData, specialData] = await Promise.all([
-          fetchData(SHEET_ID, 'Sheet1', API_KEY),
-          fetchData(SHEET_ID, 'BusinessHours', API_KEY),
-          fetchData(SHEET_ID, 'SpecialDates', API_KEY)
+          menuResponse.json(),
+          hoursResponse.json(),
+          specialResponse.json()
         ]);
 
         // Process menu data
@@ -132,11 +139,9 @@ const MenuDisplay = () => {
         setBusinessHours(processedHours);
         setSpecialDates(processedSpecialDates);
         
-        // Check if currently open
         const open = checkIfOpen(processedHours, processedSpecialDates);
         setIsOpen(open);
 
-        // Find next closed period
         const now = new Date();
         now.setHours(0, 0, 0, 0);
         const nextClosed = processedSpecialDates
@@ -156,6 +161,7 @@ const MenuDisplay = () => {
 
     loadAllData();
 
+    // Update open/closed status every minute
     const interval = setInterval(() => {
       if (businessHours.length && specialDates.length) {
         setIsOpen(checkIfOpen(businessHours, specialDates));
@@ -163,14 +169,13 @@ const MenuDisplay = () => {
     }, 60000);
 
     return () => clearInterval(interval);
-  }, [fetchData]);
+  }, []);
 
   const handleCategorySelect = useCallback((category) => {
     setSelectedCategory(category);
     setIsDropdownOpen(false);
   }, []);
 
-  // Memoize filtered menu
   const filteredMenu = useMemo(() => {
     return menuData
       .map(category => ({
@@ -213,8 +218,7 @@ const MenuDisplay = () => {
       <header className="mb-8 min-h-[150px]" role="banner">
         <div className="flex flex-col sm:flex-row items-center justify-between">
           <div className="flex flex-col items-center sm:items-start">
-            <h1 className="text-3xl font-bold">Skampa Restaurant</h1>
-            <p className="text-xl mt-1">Best Roast Beef & Mediterranean Cuisine</p>
+            <h1 className="text-3xl font-bold">Skampa Restaurant - Best Roast Beef & Mediterranean Cuisine</h1>
             <p className="text-sm text-gray-600 mt-1">
               Famous for the best Roast Beef and Mediterranean cuisine around
             </p>
