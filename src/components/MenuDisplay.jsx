@@ -214,8 +214,10 @@ const MenuDisplay = () => {
         <div className="flex flex-col sm:flex-row items-center justify-between">
           <div className="flex flex-col items-center sm:items-start">
             <h1 className="text-3xl font-bold">Skampa Restaurant</h1>
-            <h2 className="text-xl mt-1">Mediterranean Cuisine & Best Roast Beef</h2>
-            <p className="text-sm text-gray-600 mt-1">Cambridge's Premier Mediterranean Restaurant</p>
+            <p className="text-xl mt-1">Best Roast Beef & Mediterranean Cuisine</p>
+            <p className="text-sm text-gray-600 mt-1">
+              Famous for the best Roast Beef and Mediterranean cuisine around
+            </p>
           </div>
           <div className="flex flex-col items-center sm:items-end mt-2 sm:mt-0 min-w-[200px]">
             {/* Status indicator with reserved space */}
